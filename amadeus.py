@@ -1,7 +1,6 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
-import matplotlib.pyplot as plt
 import numpy as np
 
 vocab = {
@@ -24,12 +23,15 @@ vocab = {
 }
 
 class amadeus():
-    def __init__(self, path, image_size, batch_size):
+    def __init__(self, path, image_size, batch_size, load_from_file=False):
         self.image_size = image_size
         self.batch_size = batch_size
 
+        self.fitted = load_from_file
+        self.dataset_loaded = False
+
         self.dataset_training, self.dataset_validation = self.load_datasets(path)
-        self.model = self.construct_model()
+        self.model = self.load_model_from_disk() if load_from_file else self.construct_model()
 
     def load_datasets(self, path):
         dataset_training = keras.preprocessing.image_dataset_from_directory(
@@ -51,6 +53,7 @@ class amadeus():
             labels="inferred", 
             batch_size=self.batch_size,
         )
+        self.dataset_loaded = True
         return (dataset_training, dataset_validation)
     
     def construct_model(self):
@@ -70,19 +73,40 @@ class amadeus():
 
         return keras.Model(inputs=inputs, outputs=outputs)
     
+    def load_model_from_disk(self):
+        try:
+            return keras.models.load_model("./saves/final")
+        except Exception as e:
+            print(e, "error loading model from disk, try generating it the normal way")
+
     def fit(self, epochs):
+        if not self.dataset_loaded or not self.model:
+            print("tried to fit before loading dataset inclusive(or) loading model")
+            return
         callbacks = [
-            keras.callbacks.ModelCheckpoint("./saves/save_at_{epoch}.h5"),
+            keras.callbacks.ModelCheckpoint("./saves/{epoch}"),
         ]
         self.model.compile(optimizer="adam", loss="sparse_categorical_crossentropy")
         self.model.fit(self.dataset_training, epochs=epochs, callbacks=callbacks, validation_data=self.dataset_validation)
+        self.model.save("./saves/final")
+        self.fitted = True
 
     def test_accuracy_on_image(self, path):
+        if not self.fitted:
+            print("tried testing unfitted dataset")
+            return
         img = keras.preprocessing.image.load_img(path, target_size=self.image_size)
         img_array = keras.preprocessing.image.img_to_array(img)
         img_array = tf.expand_dims(img_array, 0)
 
+
         predictions = self.model.predict(img_array)
         score = predictions[0]
 
-        print(f"this shits probably a(n) {vocab[np.argmax(score)]} idk man")
+        print(f"this is probably a(n) {vocab[np.argmax(score)]} idk man")
+    
+    def plot_model(self):
+        if not self.model:
+            print("tried plotting None model")
+            return
+        keras.utils.plot_model(self.model, show_shapes=True)
