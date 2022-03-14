@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 import numpy as np
+from os import path
 
 vocab = {
     0: "0",
@@ -23,7 +24,10 @@ vocab = {
 }
 
 class amadeus():
-    def __init__(self, path, image_size, batch_size, load_from_file=False):
+    def __init__(self, path, image_size, batch_size, load_from_file=False, epochs=15):
+        if load_from_file and not self.check_for_save():
+            print("save does not yet existing, defaulting to normal routine")
+            load_from_file = False
         self.image_size = image_size
         self.batch_size = batch_size
 
@@ -32,6 +36,9 @@ class amadeus():
 
         self.dataset_training, self.dataset_validation = self.load_datasets(path)
         self.model = self.load_model_from_disk() if load_from_file else self.construct_model()
+
+        if not load_from_file:
+            self.fit(epochs)
 
     def load_datasets(self, path):
         dataset_training = keras.preprocessing.image_dataset_from_directory(
@@ -79,6 +86,9 @@ class amadeus():
         except Exception as e:
             print(e, "error loading model from disk, try generating it the normal way")
 
+    def check_for_save(self):
+        return path.isdir("./saves/final")
+
     def fit(self, epochs):
         if not self.dataset_loaded or not self.model:
             print("tried to fit before loading dataset inclusive(or) loading model")
@@ -103,7 +113,7 @@ class amadeus():
         predictions = self.model.predict(img_array)
         score = predictions[0]
 
-        print(f"this is probably a(n) {vocab[np.argmax(score)]} idk man")
+        return vocab[np.argmax(score)]
     
     def plot_model(self):
         if not self.model:
