@@ -3,6 +3,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 import numpy as np
 from os import path
+from PIL import Image
 
 vocab = {
     0: "0",
@@ -102,11 +103,13 @@ class amadeus():
         self.model.save("./saves/final")
         self.fitted = True
 
-    def test_accuracy_on_image(self, path):
+    def test_accuracy_on_image_pil(self, img):
         if not self.fitted:
             print("tried testing unfitted dataset")
             return
-        img = keras.preprocessing.image.load_img(path, target_size=self.image_size)
+        img = img.convert("RGB")
+        img = img.resize((self.image_size[1], self.image_size[0]), resample=Image.NEAREST)
+        img.show()
         img_array = keras.preprocessing.image.img_to_array(img)
         img_array = tf.expand_dims(img_array, 0)
 
@@ -115,7 +118,10 @@ class amadeus():
         score = predictions[0]
 
         return vocab[np.argmax(score)]
-    
+
+    def test_accuracy_on_image(self, path):
+        return self.test_accuracy_on_image_pil(Image.open(path))
+
     def plot_model(self):
         if not self.model:
             print("tried plotting None model")
