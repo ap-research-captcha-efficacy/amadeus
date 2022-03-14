@@ -109,10 +109,8 @@ class amadeus():
             return
         img = img.convert("RGB")
         img = img.resize((self.image_size[1], self.image_size[0]), resample=Image.NEAREST)
-        img.show()
         img_array = keras.preprocessing.image.img_to_array(img)
         img_array = tf.expand_dims(img_array, 0)
-
 
         predictions = self.model.predict(img_array)
         score = predictions[0]
