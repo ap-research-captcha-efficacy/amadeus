@@ -34,7 +34,8 @@ class amadeus():
         self.fitted = load_from_file
         self.dataset_loaded = False
 
-        self.dataset_training, self.dataset_validation = self.load_datasets(path)
+        if not load_from_file:
+            self.dataset_training, self.dataset_validation = self.load_datasets(path)
         self.model = self.load_model_from_disk() if load_from_file else self.construct_model()
 
         if not load_from_file:
