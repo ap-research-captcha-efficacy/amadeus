@@ -13,12 +13,11 @@ def generate(mod, num):
     id = ImageDraw.Draw(img)
     if mod and "obstruct" in mod:
         for i in range(0, 10):
-            id.line((randint(0, 300), randint(0, 100), randint(0, 300), randint(0, 100)), fill=128)
+            id.line((randint(1, 300), randint(1, 100), randint(1, 300), randint(1, 100)), fill=128)
     font_large = ImageFont.truetype("fonts/DejaVuSansMono.ttf", size=20)
-    x, y = (120+randint(-20,20), 40+randint(-20,20))
+    x, y = (120+(randint(-2,2)*10), 40+(randint(-2,2)*10))
     id.text((x, y), key, font=font_large, fill=(0, 0, 0))
     
-    img.save("./samples/test.png", format="PNG")
     img = img.filter(ImageFilter.SMOOTH_MORE)
     img = img.convert("L")
     for i in range(img.size[0]):
@@ -28,6 +27,7 @@ def generate(mod, num):
                 img.putpixel((i,j), 0)
             else:
                 img.putpixel((i,j), 255)
+    img.save("./samples/test.png", format="PNG")
 
     tw, th = id.textsize(key, font=font_large)
     single = tw/len(key)

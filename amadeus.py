@@ -27,7 +27,7 @@ vocab = {
 class amadeus():
     def __init__(self, path, image_size, batch_size, load_from_file=False, epochs=15):
         if load_from_file and not self.check_for_save():
-            print("save does not yet existing, defaulting to normal routine")
+            print("save does not yet exist, defaulting to normal routine")
             load_from_file = False
         self.image_size = image_size
         self.batch_size = batch_size
